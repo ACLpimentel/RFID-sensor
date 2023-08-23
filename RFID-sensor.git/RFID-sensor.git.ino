@@ -58,7 +58,7 @@ void rfid_func()
   Serial.print("Mensagem: ");
   conteudo.toUpperCase();
 
-  if (conteudo.substring(1) == "" 
+  if (conteudo.substring(1) == "0C A6 22 49" 
   
   )
   {
