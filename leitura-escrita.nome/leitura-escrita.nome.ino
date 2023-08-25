@@ -12,9 +12,11 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
  
 LiquidCrystal_I2C lcd(0x3F,16,2);
  
-#define pino_botao_le A2
-#define pino_botao_gr A3
-#define pino_uid A4
+#define pino_botao_le A4
+#define pino_botao_gr A2
+#define pino_uid A3
+
+#define buzzer 4
  
 MFRC522::MIFARE_Key key;
  
@@ -25,6 +27,9 @@ void setup()
   Serial.begin(9600);   //Inicia a serial
   SPI.begin();      //Inicia  comunicação via SPI
   mfrc522.PCD_Init();   //Inicia MFRC522
+
+  pinMode(buzzer, OUTPUT);
+  digitalWrite(buzzer, LOW);
  
   //Inicializa o LCD 16x2
   lcd.init();
@@ -114,6 +119,11 @@ void modo_leitura()
   {
     return; // volta para o local do codigo onde o bloco de codigo foi chamado
   }
+
+  digitalWrite(buzzer, HIGH);
+  delay(200);
+  digitalWrite(buzzer, LOW);
+
   //Mostra UID na serial
   Serial.print("UID da tag : ");
   String conteudo = ""; // variavel que recebe uid
@@ -206,6 +216,10 @@ void modo_gravacao()
     delay(100);
   }
   if ( ! mfrc522.PICC_ReadCardSerial())    return;
+
+  digitalWrite(buzzer, HIGH);
+  delay(200);
+  digitalWrite(buzzer, LOW);
  
   //Mostra UID na serial
   Serial.print(F("UID do Cartao: "));    //Dump UID
@@ -339,6 +353,11 @@ void modo_cod()
   {
     return; // volta para o local do codigo onde o bloco de codigo foi chamado
   }
+
+  digitalWrite(buzzer, HIGH);
+  delay(200);
+  digitalWrite(buzzer, LOW);
+
   //Mostra UID na serial
   Serial.print("UID da tag : ");
   String conteudo = ""; // variavel que recebe uid
