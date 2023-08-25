@@ -14,6 +14,7 @@ LiquidCrystal_I2C lcd(0x3F,16,2);
  
 #define pino_botao_le A2
 #define pino_botao_gr A3
+#define pino_uid A4
  
 MFRC522::MIFARE_Key key;
  
@@ -64,6 +65,20 @@ void loop()
     delay(3000);
     modo_gravacao();
   }
+
+  int modo_uid = digitalRead(pino_uid);
+  if (modo_uid != 0)
+  {
+    lcd.clear();
+    Serial.println("Modo leitura UID");
+    lcd.setCursor(2, 0);
+    lcd.print("Modo UID");
+    lcd.setCursor(3, 1);
+    lcd.print("selecionado");
+    while (digitalRead(pino_uid) == 1) {}
+    delay(3000);
+    modo_cod();
+  }
 }
 void mensageminicial() // tela de seleção
 {
@@ -72,7 +87,8 @@ void mensageminicial() // tela de seleção
   lcd.clear();
   lcd.print("Selecione o modo");
   lcd.setCursor(0, 1);
-  lcd.print("leitura/gravacao");
+  lcd.print("ler/gravar/UID");
+             
 }
  
 void mensagem_inicial_cartao()
@@ -108,9 +124,10 @@ void modo_leitura()
     Serial.print(mfrc522.uid.uidByte[i], HEX);
     conteudo.concat(String(mfrc522.uid.uidByte[i]<0x10 ? " 0" : " "));
     conteudo.concat(String(mfrc522.uid.uidByte[i], HEX));
+    // variavel conteudo armazena valor do UID
   }
   Serial.println();
- 
+
   //Obtem os dados do setor 1, bloco 4 = Nome
   byte sector         = 1;
   byte blockAddr      = 4;
@@ -176,7 +193,9 @@ void modo_leitura()
   // Stop encryption on PCD
   mfrc522.PCD_StopCrypto1();
   delay(3000);
+
   mensageminicial();
+  
 }
  
 void modo_gravacao()
@@ -303,5 +322,44 @@ void modo_gravacao()
   mfrc522.PICC_HaltA(); // Halt PICC
   mfrc522.PCD_StopCrypto1();  // Stop encryption on PCD
   delay(5000);
+  mensageminicial();
+}
+
+void modo_cod()
+{
+  mensagem_inicial_cartao();
+  //Aguarda cartao
+  while ( ! mfrc522.PICC_IsNewCardPresent())
+  {
+    delay(100);
+  }
+
+  // enquanto " !mfrc522.PICC_ReadCardSerial()" for true o codigo não seguirá em frente
+  if ( ! mfrc522.PICC_ReadCardSerial())
+  {
+    return; // volta para o local do codigo onde o bloco de codigo foi chamado
+  }
+  //Mostra UID na serial
+  Serial.print("UID da tag : ");
+  String conteudo = ""; // variavel que recebe uid
+  byte letra;
+  for (byte i = 0; i < mfrc522.uid.size; i++)
+  {
+    Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+    Serial.print(mfrc522.uid.uidByte[i], HEX);
+    conteudo.concat(String(mfrc522.uid.uidByte[i]<0x10 ? " 0" : " "));
+    conteudo.concat(String(mfrc522.uid.uidByte[i], HEX));
+    // variavel conteudo armazena valor do UID
+  }
+  Serial.println("####### fim conversao");
+  Serial.println();
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Numero do cartao:");
+  lcd.setCursor(0, 1);
+  lcd.print(conteudo);
+  delay(5000);
+  
   mensageminicial();
 }
