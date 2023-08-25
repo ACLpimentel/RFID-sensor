@@ -12,9 +12,9 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
  
 LiquidCrystal_I2C lcd(0x3F,16,2);
  
-#define pino_botao_le A2
-#define pino_botao_gr A3
-#define pino_uid A4
+#define pino_botao_le A4
+#define pino_botao_gr A2
+#define pino_uid A3
  
 MFRC522::MIFARE_Key key;
  
