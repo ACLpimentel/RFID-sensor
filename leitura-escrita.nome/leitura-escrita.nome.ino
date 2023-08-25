@@ -4,6 +4,8 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <LiquidCrystal_I2C.h>
+
+setlocale(LC_ALL,"PT_BR")
  
 //Pinos Reset e SS módulo MFRC522
 #define SS_PIN 9
@@ -152,7 +154,8 @@ void modo_leitura()
   if (status != MFRC522::STATUS_OK) {
     Serial.print(F("PCD_Authenticate() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+    delay(2000);
+    // ????? no lugar do delay havia return
   }
   status = mfrc522.MIFARE_Read(blockAddr, buffer, &size);
   if (status != MFRC522::STATUS_OK) {
@@ -181,7 +184,8 @@ void modo_leitura()
   {
     Serial.print(F("PCD_Authenticate() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+    delay(2000);
+    // ????? no lugar do delay havia return
   }
   status = mfrc522.MIFARE_Read(blockAddr, buffer, &size);
   if (status != MFRC522::STATUS_OK)
@@ -254,7 +258,9 @@ void modo_gravacao()
   if (status != MFRC522::STATUS_OK) {
     Serial.print(F("PCD_Authenticate() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+    delay(2000);
+    // ????? no lugar do delay havia return
+
   }
  
   //Grava no bloco 1
@@ -272,7 +278,8 @@ void modo_gravacao()
   if (status != MFRC522::STATUS_OK) {
     Serial.print(F("PCD_Authenticate() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+    delay(2000);
+    // ????? no lugar do delay havia return
   }
  
   //Grava no bloco 2
@@ -280,7 +287,8 @@ void modo_gravacao()
   if (status != MFRC522::STATUS_OK) {
     Serial.print(F("MIFARE_Write() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+    delay(2000);
+    // ????? no lugar do delay havia return
   }
  
   Serial.println(F("Digite o nome, em seguida o caractere #"));
@@ -298,7 +306,8 @@ void modo_gravacao()
   if (status != MFRC522::STATUS_OK) {
     Serial.print(F("PCD_Authenticate() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+    delay(2000);
+    // ????? no lugar do delay havia return
   }
  
   //Grava no bloco 4
@@ -306,7 +315,8 @@ void modo_gravacao()
   if (status != MFRC522::STATUS_OK) {
     Serial.print(F("MIFARE_Write() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+    delay(2000);
+    // ????? no lugar do delay havia return
   }
  
   block = 5;
@@ -316,7 +326,8 @@ void modo_gravacao()
   if (status != MFRC522::STATUS_OK) {
     Serial.print(F("PCD_Authenticate() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+    delay(2000);
+    // ????? no lugar do delay havia return
   }
  
   //Grava no bloco 5
@@ -324,7 +335,8 @@ void modo_gravacao()
   if (status != MFRC522::STATUS_OK) {
     Serial.print(F("MIFARE_Write() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    //return;
+    delay(2000);
+    // ????? no lugar do delay havia return
   }
   else
   {
