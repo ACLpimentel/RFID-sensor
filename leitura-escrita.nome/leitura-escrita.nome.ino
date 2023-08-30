@@ -4,7 +4,7 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <LiquidCrystal_I2C.h>
-#include <locale.h>
+#include <TimeOut.h>
 
 //Pinos Reset e SS módulo MFRC522
 #define SS_PIN 9
@@ -40,6 +40,8 @@ void setup() {
 
   //Prepara chave - padrao de fabrica = FFFFFFFFFFFFh
   for (byte i = 0; i < 6; i++) key.keyByte[i] = 0xFF;
+
+
 }
 
 void loop() {
@@ -95,7 +97,23 @@ void loop() {
     lcd.print("selecionado");
     while (digitalRead(pino_uid) == 1) {}
     delay(3000);
-    modo_apagar();
+    bool execut = 1;
+    int timeDel = millis();
+  while (!(mfrc522.PICC_IsNewCardPresent() || !execut)) {
+    Serial.println("inside is card present");
+     if ( (millis() - timeDel) >= 10000 ){
+       execut = 0;
+      break;
+       }
+    delay(100);
+  }
+
+    if(execut){
+      modo_apagar();
+      }
+      {
+         mensageminicial();
+      }
   }
 }
 void mensageminicial()  // tela de seleção
@@ -258,7 +276,7 @@ void modo_gravacao() {
   byte status, len;
 
 
-  Serial.setTimeout(10000L);
+  Serial.setTimeout(20000L);
   Serial.println(F("Digite o nome, em seguida o caractere #"));
   lcd.clear();
   lcd.print("Digite nome + #");
@@ -397,10 +415,11 @@ void modo_apagar() {
 
   mensagem_inicial_cartao();
   //Aguarda cartao ser detectado
-  while (!mfrc522.PICC_IsNewCardPresent()) {
-    delay(100);
-  }
-  if (!mfrc522.PICC_ReadCardSerial()) return;
+   
+ 
+    if (!mfrc522.PICC_ReadCardSerial()){
+      return;
+    } 
 
   digitalWrite(buzzer, HIGH);
   delay(200);
@@ -562,7 +581,7 @@ void modo_cod() {
   lcd.print("Numero do cartao:");
   lcd.setCursor(1, 1);
   lcd.print(conteudo);
-  delay(5000);
+  delay(8000);
 
   mensageminicial();
 }
