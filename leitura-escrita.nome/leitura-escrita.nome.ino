@@ -20,6 +20,25 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 #define buzzer 4
 
+#include <Keypad.h> // Biblioteca do codigo
+
+const byte LINHAS = 5; // Linhas do teclado
+const byte COLUNAS = 4; // Colunas do teclado
+
+const char TECLAS_MATRIZ[LINHAS][COLUNAS] = { // Matriz de caracteres (mapeamento do teclado)
+  {'f', 'e', '#', '*'},
+  {'1', '2', '3', 'u'},
+  {'4', '5', '6', 'd'},
+  {'7', '8', '9', 's'},
+  {'l', '0', 'r', 'n'}
+};
+
+const byte PINOS_LINHAS[LINHAS] = { 27,29,31,33,35}; // Pinos de conexao com as linhas do teclado
+const byte PINOS_COLUNAS[COLUNAS] = {43, 41, 39, 37}; // Pinos de conexao com as colunas do teclado
+
+Keypad teclado_personalizado = Keypad(makeKeymap(TECLAS_MATRIZ), PINOS_LINHAS, PINOS_COLUNAS, LINHAS, COLUNAS); // Inicia teclado
+
+
 MFRC522::MIFARE_Key key;
 
 void setup() {
@@ -40,11 +59,15 @@ void setup() {
 
   //Prepara chave - padrao de fabrica = FFFFFFFFFFFFh
   for (byte i = 0; i < 6; i++) key.keyByte[i] = 0xFF;
-
-
 }
+bool lin = 0;
+bool col = 0;
+int timeFun;
+
+bool execut;
 
 void loop() {
+
 
   //Verifica se o botao modo leitura foi pressionado
   int modo_le = digitalRead(pino_botao_le);  // modo_le recebe valor do botão de leitura
@@ -58,7 +81,24 @@ void loop() {
     lcd.print("selecionado");
     while (digitalRead(pino_botao_le) == 1) {}  // grante que o codigo posterior so é executado depois de o botão ser solto
     delay(3000);
-    modo_leitura();
+
+    mensagem_inicial_cartao();
+    execut = 1;
+    timeFun = millis();
+    while (!mfrc522.PICC_IsNewCardPresent() && execut) {
+      Serial.println("inside is card present");
+      if ((millis() - timeFun) >= 100000) {
+        execut = 0;
+      }
+      delay(100);
+    }
+
+    if (execut) {
+      modo_leitura();
+    }
+    {
+      mensageminicial();
+    }
   }
   //Verifica se o botao modo gravacao foi pressionado
   int modo_gr = digitalRead(pino_botao_gr);
@@ -71,7 +111,25 @@ void loop() {
     lcd.print("selecionado");
     while (digitalRead(pino_botao_gr) == 1) {}
     delay(3000);
-    modo_gravacao();
+
+    mensagem_inicial_cartao();
+    execut = 1;
+    timeFun = millis();
+    while (!mfrc522.PICC_IsNewCardPresent() && execut) {
+      Serial.println(execut);
+      Serial.println("inside is card present");
+      if ((millis() - timeFun) >= 100000) {
+        execut = 0;
+      }
+      delay(100);
+    }
+
+    if (execut) {
+      modo_gravacao();
+    }
+    {
+      mensageminicial();
+    }
   }
 
   int modo_uid = digitalRead(pino_uid);
@@ -84,7 +142,24 @@ void loop() {
     lcd.print("selecionado");
     while (digitalRead(pino_uid) == 1) {}
     delay(3000);
-    modo_cod();
+
+    mensagem_inicial_cartao();
+    execut = 1;
+    timeFun = millis();
+    while (!mfrc522.PICC_IsNewCardPresent() && execut) {
+      Serial.println("inside is card present");
+      if ((millis() - timeFun) >= 100000) {
+        execut = 0;
+      }
+      delay(100);
+    }
+
+    if (execut) {
+      modo_cod();
+    }
+    {
+      mensageminicial();
+    }
   }
 
   int modo_del = digitalRead(pino_del);
@@ -97,23 +172,24 @@ void loop() {
     lcd.print("selecionado");
     while (digitalRead(pino_uid) == 1) {}
     delay(3000);
-    bool execut = 1;
-    int timeDel = millis();
-  while (!(mfrc522.PICC_IsNewCardPresent() || !execut)) {
-    Serial.println("inside is card present");
-     if ( (millis() - timeDel) >= 10000 ){
-       execut = 0;
-      break;
-       }
-    delay(100);
-  }
 
-    if(execut){
+    mensagem_inicial_cartao();
+    execut = 1;
+    timeFun = millis();
+    while (!mfrc522.PICC_IsNewCardPresent() && execut) {
+      Serial.println("inside is card present");
+      if ((millis() - timeFun) >= 100000) {
+        execut = 0;
+      }
+      delay(100);
+    }
+
+    if (execut) {
       modo_apagar();
-      }
-      {
-         mensageminicial();
-      }
+    }
+    {
+      mensageminicial();
+    }
   }
 }
 void mensageminicial()  // tela de seleção
@@ -135,7 +211,6 @@ void mensagem_inicial_cartao() {
 }
 
 void modo_leitura() {
-  mensagem_inicial_cartao();
   //Aguarda cartao
   while (!mfrc522.PICC_IsNewCardPresent()) {
     delay(100);
@@ -248,11 +323,8 @@ void modo_leitura() {
 }
 
 void modo_gravacao() {
-  mensagem_inicial_cartao();
   //Aguarda cartao ser detectado
-  while (!mfrc522.PICC_IsNewCardPresent()) {
-    delay(100);
-  }
+
   if (!mfrc522.PICC_ReadCardSerial()) return;
 
   digitalWrite(buzzer, HIGH);
@@ -277,14 +349,35 @@ void modo_gravacao() {
 
 
   Serial.setTimeout(20000L);
-  Serial.println(F("Digite o nome, em seguida o caractere #"));
+  Serial.println(F("Digite o codigo, em seguida o caractere #"));
   lcd.clear();
-  lcd.print("Digite nome + #");
+  lcd.print("Digite codigo ");
   lcd.setCursor(0, 1);
-  lcd.print("p/ gravar");
+  lcd.print("+ Ent p/ gravar");
 
+  
+  len = 0;
+  int x = 0;
+Serial.print(" letras in");
+   do
+  { 
+    char leitura_teclas = teclado_personalizado.getKey();
+    if (leitura_teclas) { // Se alguma tecla foi pressionada
+   
 
-  len = Serial.readBytesUntil('#', (char *)buffer, 20);
+      buffer[x] = leitura_teclas; // Imprime a tecla pressionada na porta serial
+      
+       Serial.println(leitura_teclas);
+       Serial.println(buffer[x]);
+      x++;
+      len++;
+      Serial.print("out letras ");
+    }
+  }while( len < 17 && buffer[x-1] != 110);
+  Serial.print("letras out");
+
+  buffer[x-1] = " ";
+
   bool empty;
   Serial.print(len);
   // testa se nome foi inserido
@@ -339,11 +432,11 @@ void modo_gravacao() {
 
   Serial.println(F("Digite o sobrenome,em seguida o caractere #"));
   lcd.clear();
-  lcd.print("Digite sobrenome");
+  lcd.print("Digite nome + #");
   lcd.setCursor(0, 1);
-  lcd.print("+ # p/ gravar");
+  lcd.print("p/ gravar-max:16");
 
-  len = Serial.readBytesUntil('#', (char *)buffer, 30);
+  len = Serial.readBytesUntil('#', (char *)buffer, 16);
   for (byte i = len; i < 30; i++) buffer[i] = ' ';
   Serial.print(len);
   Serial.print(buffer[0]);
@@ -385,7 +478,7 @@ void modo_gravacao() {
   if (status != MFRC522::STATUS_OK) {
     Serial.print(F("PCD_Authenticate() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    delay(1000);
+    delay(500);
   }
 
   //Grava no bloco 2
@@ -395,7 +488,7 @@ void modo_gravacao() {
     if (status != MFRC522::STATUS_OK) {
       Serial.print(F("MIFARE_Write() failed: "));
       Serial.println(mfrc522.GetStatusCodeName(status));
-      delay(1000);
+      delay(500);
     } else {
       Serial.println(F("Dados gravados com sucesso!"));
       lcd.clear();
@@ -413,13 +506,12 @@ void modo_gravacao() {
 
 void modo_apagar() {
 
-  mensagem_inicial_cartao();
   //Aguarda cartao ser detectado
-   
- 
-    if (!mfrc522.PICC_ReadCardSerial()){
-      return;
-    } 
+
+
+  if (!mfrc522.PICC_ReadCardSerial()) {
+    return;
+  }
 
   digitalWrite(buzzer, HIGH);
   delay(200);
@@ -547,11 +639,6 @@ void modo_apagar() {
 }
 
 void modo_cod() {
-  mensagem_inicial_cartao();
-  //Aguarda cartao
-  while (!mfrc522.PICC_IsNewCardPresent()) {
-    delay(100);
-  }
 
   // enquanto " !mfrc522.PICC_ReadCardSerial()" for true o codigo não seguirá em frente
   if (!mfrc522.PICC_ReadCardSerial()) {
@@ -585,3 +672,4 @@ void modo_cod() {
 
   mensageminicial();
 }
+
