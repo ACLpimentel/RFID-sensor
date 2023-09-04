@@ -20,23 +20,23 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 #define buzzer 4
 
-#include <Keypad.h> // Biblioteca do codigo
+#include <Keypad.h>  // Biblioteca do codigo
 
-const byte LINHAS = 5; // Linhas do teclado
-const byte COLUNAS = 4; // Colunas do teclado
+const byte LINHAS = 5;   // Linhas do teclado
+const byte COLUNAS = 4;  // Colunas do teclado
 
-const char TECLAS_MATRIZ[LINHAS][COLUNAS] = { // Matriz de caracteres (mapeamento do teclado)
-  {'f', 'e', '#', '*'},
-  {'1', '2', '3', 'u'},
-  {'4', '5', '6', 'd'},
-  {'7', '8', '9', 's'},
-  {'l', '0', 'r', 'n'}
+const char TECLAS_MATRIZ[LINHAS][COLUNAS] = {  // Matriz de caracteres (mapeamento do teclado)
+  { 'f', 'e', '#', '*' },
+  { '1', '2', '3', 'u' },
+  { '4', '5', '6', 'd' },
+  { '7', '8', '9', 's' },
+  { 'l', '0', 'r', 'n' }
 };
 
-const byte PINOS_LINHAS[LINHAS] = { 27,29,31,33,35}; // Pinos de conexao com as linhas do teclado
-const byte PINOS_COLUNAS[COLUNAS] = {43, 41, 39, 37}; // Pinos de conexao com as colunas do teclado
+const byte PINOS_LINHAS[LINHAS] = { 27, 29, 31, 33, 35 };  // Pinos de conexao com as linhas do teclado
+const byte PINOS_COLUNAS[COLUNAS] = { 43, 41, 39, 37 };    // Pinos de conexao com as colunas do teclado
 
-Keypad teclado_personalizado = Keypad(makeKeymap(TECLAS_MATRIZ), PINOS_LINHAS, PINOS_COLUNAS, LINHAS, COLUNAS); // Inicia teclado
+Keypad teclado_personalizado = Keypad(makeKeymap(TECLAS_MATRIZ), PINOS_LINHAS, PINOS_COLUNAS, LINHAS, COLUNAS);  // Inicia teclado
 
 
 MFRC522::MIFARE_Key key;
@@ -354,29 +354,42 @@ void modo_gravacao() {
   lcd.print("Digite codigo ");
   lcd.setCursor(0, 1);
   lcd.print("+ Ent p/ gravar");
+  delay(1500);
+  lcd.clear();
+  lcd.print("codico + ent");
 
-  
+
+  String codi = "";
+
   len = 0;
   int x = 0;
-Serial.print(" letras in");
-   do
-  { 
-    char leitura_teclas = teclado_personalizado.getKey();
-    if (leitura_teclas) { // Se alguma tecla foi pressionada
-   
-
-      buffer[x] = leitura_teclas; // Imprime a tecla pressionada na porta serial
+  char last;
+  Serial.print(" letras in");
+  do {
+      Serial.print("out letras ");
       
-       Serial.println(leitura_teclas);
-       Serial.println(buffer[x]);
+      lcd.setCursor(0, 1);
+      lcd.print(codi);
+      delay(80); //
+
+    char leitura_teclas = teclado_personalizado.getKey();
+    if (leitura_teclas) {  // Se alguma tecla foi pressionada
+
+
+      buffer[x] = leitura_teclas;  // Imprime a tecla pressionada na porta serial
+
+      Serial.println(leitura_teclas);
+      Serial.println(buffer[x]);
+      codi += char(buffer[x]);
+      last = char(buffer[x]);
       x++;
       len++;
-      Serial.print("out letras ");
+      
     }
-  }while( len < 17 && buffer[x-1] != 110);
+  } while (len < 17 && buffer[x - 1] != 35);
   Serial.print("letras out");
 
-  buffer[x-1] = " ";
+  buffer[x - 1] = " ";
 
   bool empty;
   Serial.print(len);
@@ -401,7 +414,7 @@ Serial.print(" letras in");
 
   //Grava no bloco 4
   //
-  if (empty) {
+  if (empty && last == "#") {
     status = mfrc522.MIFARE_Write(block, buffer, 16);
     if (status != MFRC522::STATUS_OK && empty) {
       Serial.print(F("MIFARE_Write() failed: "));
@@ -421,7 +434,7 @@ Serial.print(" letras in");
   }
 
   //Grava no bloco 5
-  if (empty) {
+  if (empty && last == "#") {
     status = mfrc522.MIFARE_Write(block, &buffer[16], 16);
     if (status != MFRC522::STATUS_OK) {
       Serial.print(F("MIFARE_Write() failed: "));
@@ -672,4 +685,3 @@ void modo_cod() {
 
   mensageminicial();
 }
-
