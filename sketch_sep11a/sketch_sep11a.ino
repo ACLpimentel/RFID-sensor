@@ -8,18 +8,18 @@
 
 //Pinos Reset e SS módulo MFRC522
 #define SS_PIN 9
-#define RST_PIN 10
+#define RST_PIN 8
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 // pino dos botões
-#define pino_botao_le A1
-#define pino_botao_gr A2
-#define pino_uid A4
-#define pino_del A3
+#define pino_botao_le A0
+#define pino_botao_gr A1
+#define pino_uid A3
+#define pino_del A4
 
-#define buzzer 10
+#define buzzer 1
 
 
 // teclado de membrana
@@ -36,9 +36,8 @@ const char TECLAS_MATRIZ[LINHAS][COLUNAS] = {  // Matriz de caracteres (mapeamen
   { 'l', '0', 'r', 'n' }
 };
 
-const byte PINOS_LINHAS[LINHAS] = {  46, 44, 42, 40, 38};  // Pinos de conexao com as linhas do teclado
-const byte PINOS_COLUNAS[COLUNAS] = {37, 35, 33, 31};
- 
+const byte PINOS_LINHAS[LINHAS] = { 47, 49, 45, 43, 41 };  // Pinos de conexao com as linhas do teclado
+const byte PINOS_COLUNAS[COLUNAS] = { 46, 44, 42, 40 };    // Pinos de conexao com as colunas do teclado
 
 Keypad teclado_personalizado = Keypad(makeKeymap(TECLAS_MATRIZ), PINOS_LINHAS, PINOS_COLUNAS, LINHAS, COLUNAS);  // Inicia teclado
 
@@ -51,7 +50,6 @@ void setup() {
   Serial.begin(9600);  //Inicia a serial
   SPI.begin();         //Inicia  comunicação via SPI
   mfrc522.PCD_Init();  //Inicia MFRC522
-
 
   pinMode(buzzer, OUTPUT);
   digitalWrite(buzzer, LOW);
@@ -72,15 +70,7 @@ int timeFun;
 bool execut;
 
 void loop() {
-  Serial.print("teste");
-  //Aguarda cartao
-  while (!mfrc522.PICC_IsNewCardPresent()) {
-    delay(100);
-  }
 
-  digitalWrite(buzzer, HIGH);
-  delay(200);
-  digitalWrite(buzzer, LOW);
 
   //Verifica se o botao modo leitura foi pressionado
   int modo_le = digitalRead(pino_botao_le);  // modo_le recebe valor do botão de leitura
@@ -228,10 +218,21 @@ void mensagem_inicial_cartao() {
 }
 
 void modo_leitura() {
+  //Aguarda cartao
+  while (!mfrc522.PICC_IsNewCardPresent()) {
+    delay(100);
+  }
 
+  // enquanto " !mfrc522.PICC_ReadCardSerial()" for true o codigo não seguirá em frente
   if (!mfrc522.PICC_ReadCardSerial()) {
     return;  // volta para o local do codigo onde o bloco de codigo foi chamado
   }
+
+  digitalWrite(buzzer, HIGH);
+  delay(200);
+  digitalWrite(buzzer, LOW);
+
+
 
   //Mostra UID na serial
   Serial.print("UID da tag : ");
